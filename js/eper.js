@@ -5,14 +5,15 @@ var eper = {
     FONT_WIDTH: 9,
     FONT_HEIGHT: 10,
     TILE_SIZE: 18,
+    EMPTY: 9999,
     tiles_img: {},
     canvas,
     cursor: { x: 0, y: 0 },
     map_array: [],
     pixel: 4,
     TILE_REALSIZE: 1,
-    letter_table: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.!?",
-    letter_width: "777777777777777777777777777777777777477",
+    letter_table: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.!?abcdefghijklmnopqrstuvwxyz,:-/=*©@#$%_ ",
+    letter_width: "777777774777977777777797777577777777467776765774575867776666686766667677888996",
     timer_begin: 0,
     time_duration: 0,
     init: function () {
@@ -28,7 +29,7 @@ var eper = {
             eper.cursor.x = Math.floor(e.offsetX / eper.TILE_REALSIZE)
             eper.cursor.y = Math.floor(e.offsetY / eper.TILE_REALSIZE)
         })
-        this.map_array = [
+        var map_array = [
             '0000000000000',
             '000       000',
             '0   00 00   0',
@@ -41,26 +42,36 @@ var eper = {
             '000000 000000',
             '0000000000000',
         ]
+        this.import_map(map_array)
+    },
+    import_map: function (string_array) {
+        this.map_array = []
+        for (var j = 0; j < string_array.length; j++) {
+            var row = string_array[j]
+            var row_array = []
+            for (var i = 0; i < row.length; i++) {
+                var value = this.EMPTY
+                var char = row.charAt(i)
+                if (char == "0") {
+                    value = 0
+                } else if (char == "1") {
+                    value = 27
+                }
+                row_array.push(value)
+            }
+            this.map_array.push(row_array)
+        }
     },
     draw_map: function () {
         var x = 0
         var y = 0
         for (var j = 0; j < this.map_array.length; j++) {
-            var row = this.map_array[j]
             x2 = x
-            for (var i = 0; i < row.length; i++) {
-                var char = row.charAt(i)
-                var offset_x = 0
-                var offset_y = 0
-                var visible = false
-                if (char == "0") {
-                    visible = true
-                } else if (char == "1") {
-                    offset_x = 7
-                    offset_y = 1
-                    visible = true
-                }
-                if (visible) {
+            for (var i = 0; i < this.map_array[j].length; i++) {
+                var value = this.map_array[j][i]
+                var offset_x = value % 20
+                var offset_y = Math.floor(value / 20)
+                if (value != this.EMPTY) {
                     this.ctx.drawImage(this.tiles_img,
                         offset_x * this.TILE_SIZE, offset_y * this.TILE_SIZE,
                         this.TILE_SIZE, this.TILE_SIZE, x2, y,
@@ -77,6 +88,7 @@ var eper = {
         for (i = 0; i < text.length; i++) {
             let letter = text.charAt(i)
             let idx = this.letter_table.search("[" + letter + "]")
+            let letter_width = this.letter_width.charAt(idx)
             let offset_x = idx % 13
             let offset_y = Math.floor(idx / 13)
             //drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
@@ -84,7 +96,7 @@ var eper = {
                 offset_x * this.FONT_WIDTH, offset_y * this.FONT_HEIGHT,
                 this.FONT_WIDTH, this.FONT_HEIGHT, x, y,
                 this.FONT_WIDTH * this.pixel, this.FONT_HEIGHT * this.pixel)
-            x += this.pixel * 7
+            x += this.pixel * letter_width
         }
     },
     draw_cursor: function () {
@@ -113,7 +125,7 @@ var eper = {
         this.start_timer()
         this.cls()
         this.draw_map()
-        this.draw_text("EPER.JS", 50, 50)
+        this.draw_text("EPER.JS , istvan.szalontai12@gmail.com", 50, 50)
         this.draw_cursor()
         this.draw_debug(this.time_duration)
         this.end_timer()
