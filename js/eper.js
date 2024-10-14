@@ -1,5 +1,6 @@
 var eper = {
     is_debug: true,
+    debug_value: "",
     INGAME: 0,
     font_img: {},
     FONT_WIDTH: 9,
@@ -8,14 +9,19 @@ var eper = {
     EMPTY: 9999,
     tiles_img: {},
     canvas,
-    cursor: { x: 0, y: 0 },
+    cursor: { x: 0, y: 0, tile:0 },
     map_array: [],
+    tile_map_width: 20,
+    tile_map_length: 20,
     pixel: 4,
+    key_w: false,
+    key_f: false,
+    key_g: false,
     TILE_REALSIZE: 1,
     letter_table: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.!?abcdefghijklmnopqrstuvwxyz,:-/=*©@#$%_ ",
     letter_width: "777777774777977777777797777577777777467776765774575867776666686766667677888996",
     timer_begin: 0,
-    time_duration: 0,
+    time_array: [],
     init: function () {
         this.font_img = new Image()
         this.font_img.src = "images/retro_font.png"
@@ -26,10 +32,29 @@ var eper = {
         this.ctx.imageSmoothingEnabled = false
         this.TILE_REALSIZE = this.TILE_SIZE * this.pixel
         document.addEventListener("mousemove", function (e) {
-            eper.cursor.x = Math.floor(e.offsetX / eper.TILE_REALSIZE)
-            eper.cursor.y = Math.floor(e.offsetY / eper.TILE_REALSIZE)
+            eper.mousemove(e)
+        })
+        document.addEventListener("mousemove", function (e) {
+            eper.mousemove(e)
+        })
+        document.addEventListener("keydown", function (e) {
+            eper.keypressed(e)
+        })
+        document.addEventListener("keyup", function (e) {
+            eper.keyreleased(e)
         })
         var map_array = [
+            '0000000000000',
+            '000       000',
+            '0   00 00   0',
+            '0  0000000  0',
+            '0  0010000  0',
+            '00  00000  00',
+            '000  000  000',
+            '0000  0  0000',
+            '00000   00000',
+            '000000 000000',
+            '0000000000000',
             '0000000000000',
             '000       000',
             '0   00 00   0',
@@ -44,11 +69,55 @@ var eper = {
         ]
         this.import_map(map_array)
     },
+    keypressed: function (e) {
+        if (e.key == "w") {
+            this.key_w = true
+        }
+        if (e.key == "g") {
+            this.key_g = true
+            this.cursor.tile = this.get_map(this.cursor.x,this.cursor.y)
+        }
+        if (e.key == "f") {
+            this.key_f = true
+            //if (this.key_g){
+                
+            //}
+        }
+        this.debug_value = "pressed"
+    },
+    keyreleased: function (e) {
+        if (e.key == "w") {
+            this.key_w = false
+        }
+        if (e.key == "g") {
+            this.key_g = false
+        }
+        if (e.key == "f") {
+            this.key_f = false
+        }
+        this.debug_value = "released"
+    },
+    mousemove: function (e) {
+        this.cursor.x = Math.floor(e.offsetX / this.TILE_REALSIZE)
+        this.cursor.y = Math.floor(e.offsetY / this.TILE_REALSIZE)
+        if (this.key_f){
+            this.set_map(this.cursor.x,this.cursor.y,this.cursor.tile)
+        }
+    },
     import_map: function (string_array) {
         this.map_array = []
+        //adding zero row
+        var row_array = []
+        var n=0 
+        for(var i=0;i<this.tile_map_length;i++){
+            row_array.push(n)
+            n++
+        }
+        this.map_array.push(row_array)
+        //adding the rest
         for (var j = 0; j < string_array.length; j++) {
             var row = string_array[j]
-            var row_array = []
+            row_array = []
             for (var i = 0; i < row.length; i++) {
                 var value = this.EMPTY
                 var char = row.charAt(i)
@@ -62,6 +131,12 @@ var eper = {
             this.map_array.push(row_array)
         }
     },
+    get_map: function (x, y) {
+        return this.map_array[y][x]
+    },
+    set_map: function (x, y, n) {
+        this.map_array[y][x] = n
+    },
     draw_map: function () {
         var x = 0
         var y = 0
@@ -69,8 +144,8 @@ var eper = {
             x2 = x
             for (var i = 0; i < this.map_array[j].length; i++) {
                 var value = this.map_array[j][i]
-                var offset_x = value % 20
-                var offset_y = Math.floor(value / 20)
+                var offset_x = value % this.tile_map_width
+                var offset_y = Math.floor(value / this.tile_map_width)
                 if (value != this.EMPTY) {
                     this.ctx.drawImage(this.tiles_img,
                         offset_x * this.TILE_SIZE, offset_y * this.TILE_SIZE,
@@ -106,11 +181,11 @@ var eper = {
     cls: function () {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     },
-    draw_debug: function (value) {
+    draw_debug: function () {
         if (this.is_debug) {
             this.ctx.fillStyle = '#FFF';
             this.ctx.font = "20px tahoma";
-            this.ctx.fillText("Value:" + value, 20, 24)
+            this.ctx.fillText("Value:" + this.debug_value, 20, 24)
         }
     },
     start_timer: function () {
@@ -119,7 +194,24 @@ var eper = {
     },
     end_timer: function () {
         const d = new Date()
-        this.time_duration = d.getTime() - this.timer_begin
+        var time_taken = d.getTime() - this.timer_begin
+        time_taken = 21
+        this.time_array.push(time_taken)
+    },
+    get_time_taken: function () {
+        var n = this.time_array.length
+        if (this.time_array.length > 20) {
+            var sum = 0
+            for (var i = n - 10; i < n; i++) {
+                sum += this.time_array[i] * 1
+                //sum += 1
+            }
+            return sum / 10
+        }
+        return 0
+    },
+    osszead: function (a, b) {
+        return a + b
     },
     update: function () {
         this.start_timer()
@@ -127,7 +219,8 @@ var eper = {
         this.draw_map()
         this.draw_text("EPER.JS , istvan.szalontai12@gmail.com", 50, 50)
         this.draw_cursor()
-        this.draw_debug(this.time_duration)
+        //this.debug_value = this.get_time_taken()
+        this.draw_debug()
         this.end_timer()
     },
     say_hello: function () {
