@@ -8,3 +8,14 @@ body {
     background-color: navy;
     overflow: hidden;
 }
+
+#export {
+    position: fixed;
+    color: white;
+    font-size: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    top: 40px;
+    left: 40px;
+    background-color: rgba(128, 128, 128, 0.5);
+}
