@@ -17,7 +17,7 @@ var eper = {
     camera: { x: 0, y: 0, speed: 2 },
     map_array: [],
     tile_map_width: 20,
-    tile_map_length: 20,
+    tile_map_length: 40,
     pixel: 4,
     PIXEL_MAX: 10,
     key_w: false,
@@ -53,7 +53,7 @@ var eper = {
         document.addEventListener("keyup", function (e) {
             eper.keyreleased(e)
         })
-        this.generate_empty_map(80, 80)
+        this.generate_empty_map(161, 51)
         //this.import_map(map_array)
     },
     keypressed: function (e) {
@@ -203,16 +203,19 @@ var eper = {
         }
         this.TILE_REALSIZE = this.TILE_SIZE * this.pixel
     },
-    generate_empty_map: function (width, height) {
+    generate_zero_row: function(){
         this.map_array = []
         //adding zero row
         var row_array = []
         var n = 0
-        for (var i = 0; i < this.tile_map_length; i++) {
+        for (var i = 0; i < this.tiles_char.length; i++) {
             row_array.push(n)
             n++
         }
         this.map_array.push(row_array)
+    },
+    generate_empty_map: function (width, height) {
+        this.generate_zero_row()
         //adding the rest
         for (var j = 0; j < height; j++) {
             row_array = []
@@ -228,15 +231,7 @@ var eper = {
         }
     },
     import_map: function (string_array) {
-        this.map_array = []
-        //adding zero row
-        var row_array = []
-        var n = 0
-        for (var i = 0; i < this.tile_map_length; i++) {
-            row_array.push(n)
-            n++
-        }
-        this.map_array.push(row_array)
+        this.generate_zero_row()
         //adding the rest
         for (var j = 0; j < string_array.length; j++) {
             var row = string_array[j]
